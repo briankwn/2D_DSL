@@ -1,0 +1,29 @@
+function updateVertex(u)
+
+
+%remove if the vertex needing updating is in the queue
+if open.contains(u)
+    open.remove(u);
+end
+
+if g ~= rhs %add it back to the queue if it's locally inconsistent - this means we need to consider it for a shorter path
+    u.calculateKey();
+    open.insert(u);
+end
+
+
+
+%%pseudocode from paper - simplifies when your update function's just a
+%%remove and re-add... likely will be a performance hit here though
+% if g ~= rhs && u in U
+%     U.update(u,calculateKey(u));
+% 
+% else if g ~= rhs && u not in U
+%     U.insert(u,calculateKey(u));
+% else if g == rhs && u in U
+%    U.remove(u);         
+% end
+
+
+
+end

@@ -1,0 +1,22 @@
+function computeShortestPath()
+
+
+while(open.peek() < StartNode || StartNode.rhs > StartNode.g)
+    u = open.peek();
+    u_old = copyobj(open.peek()); %need to make a copy of this node... 
+    u.DSL_computeKeys();
+    
+    if(u_old < u) %comparing node objects compares their keys
+        %remove and re-add u in order to re-sort it in the queue, value
+        %should already be recomputed
+    elseif u.g > u.rhs
+        u.g = u.rhs;
+        open.remove(u);
+        for s=1:pred %all nodes in predecessors... potential place for expansion
+            if(
+        end
+    end
+    
+    
+
+end

@@ -1,0 +1,8 @@
+function h_val = computeH(node_a, node_b)
+%keeping it simple with euclidian distance for now. Could evaluate
+%min(xdist,ydist) in the future
+
+h_val = node_a.x - node_b.x + node_a.y 
+
+
+end
