@@ -1,9 +1,8 @@
-classdef DSL_Node
+classdef DSL_Node < handle
     %DSL_NODE Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
-        parent
         x
         y
         g
@@ -15,7 +14,8 @@ classdef DSL_Node
     methods
         function obj = DSL_Node(x_, y_, g_, rhs_)
             %DSL_NODE Construct an instance of this class
-            %   Things needed for a node... x, y, g, h rhs, key1, key2
+            %   Things needed for a node... x, y, g, h rhs, key1, key2. g
+            %   and rhs default to inf
             obj.x = x_;
             obj.y = y_;
             obj.g = g_;
@@ -51,6 +51,11 @@ classdef DSL_Node
             %   compares keys
             boolout = a.Key1 == b.Key1 && a.Key2 == b.Key2;
         end
+        
+        function boolout = pos_equal(a,b)
+            boolout = a.x == b.x && a.y == b.y;
+        end
+        
 
     end
 end

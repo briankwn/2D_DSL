@@ -14,11 +14,21 @@ MAX_VAL=30;
 %Objects in each coordinate
 MAP=2*(ones(MAX_X,MAX_Y));
 
+node_Grid = cell(MAX_X,MAX_Y);
+
+for i=1:MAX_X
+    for j=1:MAX_Y
+        node_Grid{i,j} = DSL_Node(i,j,Inf,Inf);
+    end
+end
+
+disp(node_Grid)
+
 % Obtain Obstacle, Target and Robot Position
 % Initialize the MAP with input values
 % Obstacle=-1,Target = 0,Robot=1,Space=2
 
-%new idea - Obstacle = inf, Space = 1, robot =2, target =3
+%potential new idea - Obstacle = inf, Space = 1, robot =2, target =3
 j=0;
 x_val = 1;
 y_val = 1;
@@ -110,58 +120,65 @@ text(xStart+1,yStart+.5,'Start')
 
 
 %% initialize start/end nodes from values, then start the algo
-s_goal = DSL_Node(xTarget, yTarget, Inf, Inf);
-s_start = DSL_Node(xStart, yStart, Inf, Inf);
-
 %todo
 %save map out for next time, add re-plot capabilities, extract start,
 %obstacles, end from MAP - might be good to have this as an object for
 %easier use
 save('map.mat','MAP');
 
+
+s_goal = node_Grid{xTarget, yTarget};%DSL_Node(xTarget, yTarget, Inf, 0);
+s_start = node_Grid{xStart,yStart}; % DSL_Node(xStart, yStart, Inf, Inf);
+
+%heuristic adjustment from focussed D* - this prevents constant queue
+%rearranging
+km = 0;
+
+s_goal.rhs = 0;
+DSL_computeKeys(s_goal, s_start, km); %get the heuristic set up on s_goal
+
 %tic
 
-%initialize open and closed
-open = PriorityQueue();
+%initialize U and closed
+U = PriorityQueue();
 
 %insert all obstacles onto closed
 
-%put start on open
-open.insert(s_goal);
-open.insert(s_start);
-%put start on closed
+%put start on queue
+U.insert(s_goal);
 
-%%%%start algorithm
 
-% %%initialize
-% km = 0;
-% s_last = s_start;
-% computeShortestPath();
-% while(s_start ~= s_goal) %this needs to be re-evaluated, maybe a different equals
-%     if(s_start.rhs == inf) %no path found
-%         %break, invert this
-%     end
-%     %s_start = argmin_successors_of_start(
-%     %move to start
-%     %scan for changes
-%     if changed
-%         k_m = km + h_last_start; %-h_last_start in our case is almost always 1, but technically the heuristic between this node and the last
-%         s_last = s_start;
-%         for uv=1:changededges
-%             c_old = c(u,v);
-%             % if u ~= s_goal 
-%             %update edge cost ---
-%             if(c_old > c(u,v))
-%                 %if u~= s_goal
-%                 %recompute rhs
-%             else
-%                 %recompute rhs differently
-%             end
-%             updateVertex(u);
-%         end
-%         computeShortestPath();
-%     end
-% end
+
+s_last = s_start;
+computeShortestPath();
+while(~s_start.pos_equal(s_goal)) %reminder to test this with full equals - should theoretically work if assignments are working right
+    if(s_start.rhs ~= inf) %path is still available
+       
+    else
+        %maybe set a variable here for cleanliness
+        disp('path cannot be computed')
+    end
+    s_start = getMinSucc(s_start);
+    current_pos = s_start; %move to start, this is kind of implicitly done above...
+% %     changed = scanForChanges();
+% %     if changed
+% %         k_m = km + h_last_start; %-h_last_start in our case is almost always 1, but technically the heuristic between this node and the last
+% %         s_last = s_start;
+% %         for uv=1:changededges
+% %             c_old = c(u,v);
+% %             % if u ~= s_goal 
+% %             %update edge cost ---
+% %             if(c_old > c(u,v))
+% %                 %if u~= s_goal
+% %                 %recompute rhs
+% %             else
+% %                 %recompute rhs differently
+% %             end
+% %             updateVertex(u);
+% %         end
+% %         computeShortestPath();
+% %     end
+end
    
 %toc
     

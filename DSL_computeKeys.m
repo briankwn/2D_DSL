@@ -1,13 +1,13 @@
-function DSL_computeKeys(node, km)
+function DSL_computeKeys(node, s_start, km)
 % this in theory just takes s, which has attributes
 %computing key for node given g, rhs, h, km value
 %
 %eventually build in error handling via boolean return
 
-node.key2 = min(node.g,node.rhs);
+node.Key2 = min(node.g,node.rhs);
 
 %potentiall update heuristic here
 
-node.key1 = node.key2 + node.h + km;
+node.Key1 = node.Key2 + computeH(s_start,node) + km;
 
 end

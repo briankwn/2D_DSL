@@ -2,13 +2,13 @@ function updateVertex(u)
 
 
 %remove if the vertex needing updating is in the queue
-if open.contains(u)
-    open.remove(u);
+if U.contains(u)
+    U.remove(u);
 end
 
 if g ~= rhs %add it back to the queue if it's locally inconsistent - this means we need to consider it for a shorter path
-    u.calculateKey();
-    open.insert(u);
+    DSL_computeKeys(u);
+    U.insert(u);
 end
 
 
