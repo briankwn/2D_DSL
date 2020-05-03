@@ -1,41 +1,44 @@
 function computeShortestPath()
 %computes the shortest path 
+global U s_start
 
-while(open.peek() < StartNode || StartNode.rhs > StartNode.g)
-    u = open.peek();
-    u_old = copyobj(open.peek()); %need to make a copy of this node... 
+
+DSL_computeKeys(s_start);
+while(U.peek() < s_start || s_start.rhs > s_start.g)
+    u = U.peek();
+    u_old = DSL_N; %need to make a copy of this node... 
     u.DSL_computeKeys();
     
     if(u_old < u) %comparing node objects compares their keys
-        open.remove(u);
-        open.add(u);
+        U.remove(u);
+        U.add(u);
         %remove and re-add u in order to re-sort it in the queue, value
-        %should already be recomputed
-    elseif u.g > u.rhs %---- over consistent 
+    elseif u.g > u.rhs %---- locally over consistent 
         u.g = u.rhs;
-        open.remove(u);
-        for s=1:pred %all nodes in predecessors... potential place for expansion - can use this as a place to look around and check against the graph
-            if s ~= goal
-                s.rhs = min(s.rhs,u.g + cost(s,u)); %this needs some noodling - looks like c is the vertex cost
+        U.remove(u);
+        preds = getPreds(u);
+        for s_ind=1:length(preds) %all nodes in predecessors... potential place for expansion - can use this as a place to look around and check against the graph
+            s = preds(s_ind);
+            if ~ s.pos_equal(s_goal)
+                s.rhs = min(s.rhs, u.g + cost(s,u)); %this needs some noodling
                 updateVertex(s);
             end
         end
-    else % ---- under consistent 
+    else % ---- locally under consistent 
         g_old = u.g;
-        u.g = Inf; % Can't be this easy... 
-        for s=1:pred %definite expansion point - might be worth its own method
+        u.g = Inf;
+        preds = getPreds(u);
+        preds(end + 1) = u; %dropping u back on the queue for the next round
+        for s_ind=1:preds
+            s = preds(s_ind);
             if(s.rhs == cost(s,u) + g_old) 
-                if s == sgoal
-                    s.rhs %recompute rhs from successors...
+                if ~ s.pos_equal(s_goal) %note to test without this pos_equal thing. realistically not necessary.
+                    s_min_pred = getMinSucc(s);
+                    s.rhs = cost(s,s_min_pred) + s_min_pred.g; %recompute rhs from min of successors
                 end
             end
             updateVertex(s)
         end
     end
-    
-    %todo
-    %figure out what c function is
-    %figure out "predecessors concept" and expansion
-    %
 
 end

@@ -1,11 +1,17 @@
 function computeShortestPath()
 %computes the shortest path 
+global U s_start s_goal
+
 
 DSL_computeKeys(s_start);
 while(U.peek() < s_start || s_start.rhs > s_start.g)
     u = U.peek();
-    u_old = copyobj(U.peek()); %need to make a copy of this node... 
-    u.DSL_computeKeys();
+    
+    u_old = DSL_Node(u.x,u.y,u.g,u.rhs);%need to make a copy of this node... 
+    u_old.Key1 = u.Key1;
+    u_old.Key2 = u.Key2;
+    
+    DSL_computeKeys(u);
     
     if(u_old < u) %comparing node objects compares their keys
         U.remove(u);
@@ -16,7 +22,7 @@ while(U.peek() < s_start || s_start.rhs > s_start.g)
         U.remove(u);
         preds = getPreds(u);
         for s_ind=1:length(preds) %all nodes in predecessors... potential place for expansion - can use this as a place to look around and check against the graph
-            s = preds(s_ind);
+            s = preds{s_ind};
             if ~ s.pos_equal(s_goal)
                 s.rhs = min(s.rhs, u.g + cost(s,u)); %this needs some noodling
                 updateVertex(s);
@@ -26,9 +32,9 @@ while(U.peek() < s_start || s_start.rhs > s_start.g)
         g_old = u.g;
         u.g = Inf;
         preds = getPreds(u);
-        preds(end + 1) = u; %dropping u back on the queue for the next round
+        preds{end + 1} = u; %dropping u back on the queue for the next round
         for s_ind=1:preds
-            s = preds(s_ind);
+            s = preds{s_ind};
             if(s.rhs == cost(s,u) + g_old) 
                 if ~ s.pos_equal(s_goal) %note to test without this pos_equal thing. realistically not necessary.
                     s_min_pred = getMinSucc(s);

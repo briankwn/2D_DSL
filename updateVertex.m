@@ -1,12 +1,13 @@
 function updateVertex(u)
 
+global U
 
 %remove if the vertex needing updating is in the queue
 if U.contains(u)
     U.remove(u);
 end
 
-if g ~= rhs %add it back to the queue if it's locally inconsistent - this means we need to consider it for a shorter path
+if u.g ~= u.rhs %add it back to the queue if it's locally inconsistent - this means we need to consider it for a shorter path
     DSL_computeKeys(u);
     U.insert(u);
 end
