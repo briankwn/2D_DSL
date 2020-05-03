@@ -1,7 +1,6 @@
 function [exists, succ] = getMinSucc(node)
 
-succ = nan;
-exists = 0;
+succ = Na;
 
 preds = getPreds(node);
 
@@ -11,6 +10,5 @@ for i=1:length(preds)
     if new_g < min_g
        min_g=new_g;
        succ = preds{i};
-       exists = 1;
     end
 end

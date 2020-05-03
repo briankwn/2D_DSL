@@ -6,7 +6,9 @@
 clear all
 close all
 
+%control variables
 makemap = 0;
+sensor_dist = 5;
 
 
 %DEFINE THE 2-D MAP ARRAY
@@ -91,7 +93,7 @@ if makemap
         [xval,yval,but] = ginput(1);
         xval=floor(xval);
         yval=floor(yval);
-        MAP(xval,yval)=-1;
+        MAP(xval,yval)=-2;  %this value is better as -2 for dynamic obstacles that we want revealed later, -1 for static ones revealed at the start. potentially add a section in the future for static + dynamic selection
         plot(xval+.5,yval+.5,'ro');
     end
 
@@ -154,8 +156,9 @@ else
                 text(xStart+1,yStart+.5,'Start')
                 
             end
-            if MAP(i,j) == -1
-                
+            if MAP(i,j) == -2
+                plot(i+.5,j+.5,'ro');
+            end
         end
     end
 
@@ -193,9 +196,10 @@ U = PriorityQueue();
 %put start on queue
 U.insert(s_goal);
 
-global s_last 
+global s_last old_MAP
 s_last = s_start;
 computeShortestPath();
+opt_path = [];
 while(~s_start.pos_equal(s_goal)) %reminder to test this with full equals - should theoretically work if assignments are working right
     if(s_start.rhs ~= inf) %path is still available
         s_start = getMinSucc(s_start);
@@ -204,56 +208,73 @@ while(~s_start.pos_equal(s_goal)) %reminder to test this with full equals - shou
         
         %% section for adding/removing dynamic obstacles and plotting the bot
             %re-display bot
-            plot(current_pos.x+.5,current_pos.y+.5,'bo');
-            text(current_pos.x+.5,current_pos.y+.5,'Robot');
+            children = get(gca, 'children');
+            delete(children(1)); %deleting only the text provides a 'trail' of robots to see the path. can look at a better solution for this in the future.
+
+            old_MAP = MAP; %store off previous map for comparison
             
-            %display path as a trail
-            opt_path(end+1,1) = current_pos.x;
-            opt_path(end+1,2) = current_pos.y;
-            plot(opt_path(:,1)+.5,opt_path(:,2)+.5);
+            %scan around the robot in order to 'discover' obstacles - could
+            %probably do this in a more vectorized manner, sweep with a
+            %kernel etc
+            for i=current_pos.x - sensor_dist : current_pos.x + sensor_dist
+                for j =current_pos.y- sensor_dist : current_pos.y + sensor_dist
+                    inbounds = i <= MAX_X && pred_y <= MAX_Y && pred_x >0 && pred_y >0
+                    if MAP(i,j) == -2
+                        MAP(i,j) = -1;
+                        plot(i+.3,j+.3,'yo'); %plot the object as 'discovered'
+                    end
+                end
+            end
+
+            %plot the visible area around the robot as visited, or just
+            %plot obstacles in different colors as they're "discovered"
+            
+            plot(current_pos.x+.4,current_pos.y+.4,'bo');
+            text(current_pos.x+.5,current_pos.y-.5,'Robot');
+            
+            pause(.25); %pause for animation, probably should nest this in a state/conditional/flag for speed tests
+            
         
     
         %% dealing with dynamic obstacles
-%         [changed, changed_nodes] = scanForChanges();
-%         if changed
-%             km = km + computeH(s_last, s_start); %-h_last_start in our case is almost always 1, but technically the heuristic between this node and the last
-%             s_last = s_start;
-%             for edge_ind=1:changed_nodes %any changed node, plus all neighbors - technically overboard, but simple implementation
-%                 c_node = changed_nodes(edge_ind);
-%                 preds = getPreds(c_node);
-%                 %if old cost ~= new cost % additional condition so we don't
-%                 %recheck a neighbor's edge that hasn't changed
-%                 c_old = c(u,v);
-%                 % if u ~= s_goal 
-%                 %update edge cost ---
-%                 if(c_old > c(u,v))
-%                     %if u~= s_goal
-%                     %recompute rhs
-%                 else
-%                     %recompute rhs differently
-%                 end
-%                 updateVertex(u);
-%             end
-%             computeShortestPath();
-%         end
+        [changed, changed_nodes] = findChangedNodes();
+        if changed
+            km = km + computeH(s_last, s_start); %-h_last_start in our case is almost always 1, but technically the heuristic between this node and the last
+            s_last = s_start;
+            for edge_ind=1:length(changed_nodes) %any changed node, plus all neighbors - technically overboard, but simple implementation
+                c_node = changed_nodes{edge_ind}; %this is u in the paper
+                preds = getPreds(c_node);
+                for pred_ind = 1:length{preds}
+                    pred = preds(pred_ind); %this is v in the paper
+                    c_old = cost(c_node, pred, old_MAP);
+                    c_new = cost(c_node, pred);
+                    if c_old ~= c_new %cycling through all possibly changed edges since edges aren't explicitly stored
+                        if c_old > c_new && ~c_node.pos_equal(s_goal)
+                            %update rhs from v
+                            c_node.rhs = min(c_node.rhs, cost(c_node,pred) + pred.g);
+                        elseif c_node.rhs == (c_old + pred.g) && ~c_node.pos_equal(s_goal)
+                            %update rhs from min pred of u
+                            minSucc = getMinSucc(c_node);
+                            c_node.rhs = min(cost(c_node,minSucc), minSucc.g);
+                        end
+                        %this could easily get called too many times here, might need a check to see if we've already updated this c_node
+                        updateVertex(c_node) 
+                    end
+                
+                end
+            end
+            computeShortestPath();
+        end
+
     else
         %maybe set a variable here for cleanliness
         disp("I'm sorry Dave, I'm afraid I can't do that") %print humor when path is impossible
    end
 end
-   
+
+
+
 %toc
     
-
-%todo
-
-%scan for changes
-
-%dynamic obstacles
-
-%to finish: computeShortest path, Dstarlight, 
     
-
-
-
     

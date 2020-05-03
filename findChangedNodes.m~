@@ -1,0 +1,22 @@
+function [foundChanges,changedNodes] = findChangedNodes()
+%scan through the graph, find nodes that have changed, add them to a list
+%for updating
+
+global MAX_X MAX_Y MAP old_MAP node_Grid
+
+foundChanges = 0; %default to not having found any changes
+changedNodes = [];
+
+for i=1:MAX_X %really hate looping but such is life
+    for j=1:MAX_Y
+        if MAP(i,j) ~= old_MAP(i,j) %found change
+            changedNodes(end + 1) = node_Grid{i,j};
+        end
+    end
+end
+
+if ~isempty(changedNodes)
+    foundChanges = 1;
+end
+
+end
