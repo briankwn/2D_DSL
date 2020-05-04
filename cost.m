@@ -17,6 +17,10 @@ nodes_are_adjacent = abs(u.x - v.x) < 2 && abs(u.y - v.y) < 2;
 
 if (Map(u.x,u.y) == -1 || Map(v.x,v.y) == -1 || ~nodes_are_adjacent) %either of the nodes is an obstacle or nodes aren't adjacent
     edge_cost = inf;
+%penalize diagonals    
+elseif abs(u.x - v.x) == 1 && abs(u.y - v.y)
+    edge_cost = sqrt(2);
+
 else
     edge_cost = 1;
 end
