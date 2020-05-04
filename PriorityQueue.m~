@@ -84,7 +84,6 @@ classdef PriorityQueue < handle
             end
             
             if size(varargin,2) > 0
-                disp('warning: remove by element does not bubble')
                 for i=1:obj.Size
                     if isequal(obj.Data{i}, varargin{1})
                         node = obj.Data{i};
@@ -93,8 +92,7 @@ classdef PriorityQueue < handle
                     end
                 end
                 obj.Data = obj.Data(~cellfun('isempty',obj.Data)); % remove empty element from cell array
-                %%%need to bubble! - specicially need logic on bubbling up
-                %%%vs down... should be fun
+                
             else
                 node = obj.Data{1};
                 obj.Data{1} = obj.Data{obj.Size}; % replace root with last element

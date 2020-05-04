@@ -1,52 +1,49 @@
 function computeShortestPath()
 %computes the shortest path 
-global U s_start s_goal
+global U s_start 
 
 
 DSL_computeKeys(s_start);
-while(U.peek() < s_start || s_start.rhs > s_start.g)
-    u = U.peek();
+while(U.peek() < s_start || s_start.rhs ~= s_start.g)
+  
     
-    u_old = DSL_Node(u.x,u.y,u.g,u.rhs);%need to make a copy of this node... 
+    u = U.remove(); %pop u 
+    
+    if(u == s_start)
+        disp('processing s_start')
+    end
+    
+    disp(U.size())
+    
+    u_old = DSL_Node(u.x,u.y,u.g,u.rhs);%need to make a copy of this node for comparison... 
     u_old.Key1 = u.Key1;
     u_old.Key2 = u.Key2;
     
     DSL_computeKeys(u);
     
     if(u_old < u) %comparing node objects compares their keys
-        U.remove(u);
-        U.add(u);
-        %remove and re-add u in order to re-sort it in the queue, value
-    elseif u.g > u.rhs %---- locally over consistent 
+        U.insert(u);
+
+    elseif u.g > u.rhs %---- locally over consistent, relax down 
+        %plot(u.x+.5,u.y+.5,'ch'); %uncomment to show which nodes are being fully expanded/relaxed
+        %pause(.05)
         u.g = u.rhs;
-        U.remove(u);
         preds = getPreds(u);
-        for s_ind=1:length(preds) %all nodes in predecessors... 
+        for s_ind=1:length(preds) 
             s = preds{s_ind};
-            if ~ s.pos_equal(s_goal)
-                s.rhs = min(s.rhs, u.g + cost(s,u)); %this needs some noodling
-                updateVertex(s);
-            end
+            updateVertex(s);         
         end
-    else % ---- locally under consistent 
-        g_old = u.g;
+        
+    else % ---- locally under consistent - set g to inf and throw it back on the queue for re-expansion next round
         u.g = Inf;
         preds = getPreds(u);
         preds{end + 1} = u; %dropping u back on the queue for the next round
         for s_ind=1:length(preds)
             s = preds{s_ind};
-            if(s.rhs == cost(s,u) + g_old) 
-                if ~ s.pos_equal(s_goal) %note to test without this pos_equal thing. realistically not necessary.
-                    [succ_exists, s_min_pred] = getMinSucc(s);
-                     if succ_exists
-                        s.rhs = cost(s,s_min_pred) + s_min_pred.g; %recompute rhs from min of successors
-                     else
-                         s.rhs = Inf; %handle case where all successors are inf
-                     end
-                end
-            end
             updateVertex(s)
         end
     end
-    DSL_computeKeys(s_start); %redundant
+    DSL_computeKeys(s_start);
+end
+
 end

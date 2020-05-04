@@ -24,7 +24,8 @@
 
 
 
-%todo: replace column wise compare with object compare
+%todo: replace column wise compare with object compare, replace comparison
+%logic with DSL_compare(key_a,key_b)
 %check - all obj.column is removed
 
 %might just be able to override gt, lt, and eq on the node class...
@@ -84,7 +85,6 @@ classdef PriorityQueue < handle
             end
             
             if size(varargin,2) > 0
-                disp('warning: remove by element does not bubble')
                 for i=1:obj.Size
                     if isequal(obj.Data{i}, varargin{1})
                         node = obj.Data{i};
@@ -93,8 +93,7 @@ classdef PriorityQueue < handle
                     end
                 end
                 obj.Data = obj.Data(~cellfun('isempty',obj.Data)); % remove empty element from cell array
-                %%%need to bubble! - specicially need logic on bubbling up
-                %%%vs down... should be fun
+                
             else
                 node = obj.Data{1};
                 obj.Data{1} = obj.Data{obj.Size}; % replace root with last element
@@ -105,7 +104,7 @@ classdef PriorityQueue < handle
                 currentIter = 1;
                 % perform bubble down
                 while currentIter < obj.Size
-                    %if in bounds && current > left || current > right
+                    %if stuff && current > left || current > right
                     if leftChild <= obj.Size && rightChild <= obj.Size && (obj.Data{currentIter} > obj.Data{leftChild} || obj.Data{currentIter} > obj.Data{rightChild})
                         if obj.Data{leftChild} < obj.Data{rightChild} %if left child less than right child
                             % left child is smaller

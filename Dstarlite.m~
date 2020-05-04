@@ -8,7 +8,7 @@ close all
 
 %control variables
 makemap = 0;
-sensor_dist = 5;
+sensor_dist = 10;
 
 
 %DEFINE THE 2-D MAP ARRAY
@@ -33,7 +33,6 @@ end
 %% map generation
 if makemap
 
-    disp(node_Grid)
 
     % Obtain Obstacle, Target and Robot Position
     % Initialize the MAP with input values
@@ -200,11 +199,13 @@ global s_last old_MAP
 s_last = s_start;
 computeShortestPath();
 opt_path = [];
+
+changecount = 0;
+
 while(~s_start.pos_equal(s_goal)) %reminder to test this with full equals - should theoretically work if assignments are working right
     if(s_start.rhs ~= inf) %path is still available
-        s_start = getMinSucc(s_start);
+        [exists, s_start] = getMinSucc(s_start);
         current_pos = s_start; %move to start, this is kind of implicitly done above...
-
         
         %% section for adding/removing dynamic obstacles and plotting the bot
             %re-display bot
@@ -218,10 +219,10 @@ while(~s_start.pos_equal(s_goal)) %reminder to test this with full equals - shou
             %kernel etc
             for i=current_pos.x - sensor_dist : current_pos.x + sensor_dist
                 for j =current_pos.y- sensor_dist : current_pos.y + sensor_dist
-                    inbounds = i <= MAX_X && pred_y <= MAX_Y && pred_x >0 && pred_y >0
-                    if MAP(i,j) == -2
+                    inbounds = i <= MAX_X && j <= MAX_Y && i >0 && j >0; %bound check so we don't try and update outside the map
+                    if inbounds && MAP(i,j) == -2
                         MAP(i,j) = -1;
-                        plot(i+.3,j+.3,'yo'); %plot the object as 'discovered'
+                        plot(i+.5,j+.5,'m*'); %plot the object as 'discovered'
                     end
                 end
             end
@@ -232,38 +233,36 @@ while(~s_start.pos_equal(s_goal)) %reminder to test this with full equals - shou
             plot(current_pos.x+.4,current_pos.y+.4,'bo');
             text(current_pos.x+.5,current_pos.y-.5,'Robot');
             
-            pause(.25); %pause for animation, probably should nest this in a state/conditional/flag for speed tests
+            pause(.5); %pause for animation, probably should nest this in a state/conditional/flag for speed tests
             
         
     
         %% dealing with dynamic obstacles
         [changed, changed_nodes] = findChangedNodes();
         if changed
+
             km = km + computeH(s_last, s_start); %-h_last_start in our case is almost always 1, but technically the heuristic between this node and the last
             s_last = s_start;
-            for edge_ind=1:length(changed_nodes) %any changed node, plus all neighbors - technically overboard, but simple implementation
+            
+            for edge_ind=1:length(changed_nodes) %any changed node, plus all neighbors
                 c_node = changed_nodes{edge_ind}; %this is u in the paper
-                preds = getPreds(c_node);
-                for pred_ind = 1:length{preds}
-                    pred = preds(pred_ind); %this is v in the paper
-                    c_old = cost(c_node, pred, old_MAP);
-                    c_new = cost(c_node, pred);
-                    if c_old ~= c_new %cycling through all possibly changed edges since edges aren't explicitly stored
-                        if c_old > c_new && ~c_node.pos_equal(s_goal)
-                            %update rhs from v
-                            c_node.rhs = min(c_node.rhs, cost(c_node,pred) + pred.g);
-                        elseif c_node.rhs == (c_old + pred.g) && ~c_node.pos_equal(s_goal)
-                            %update rhs from min pred of u
-                            minSucc = getMinSucc(c_node);
-                            c_node.rhs = min(cost(c_node,minSucc), minSucc.g);
-                        end
-                        %this could easily get called too many times here, might need a check to see if we've already updated this c_node
-                        updateVertex(c_node) 
-                    end
                 
-                end
+                %updateVertex(c_node)
+                 
+                 preds = getPreds(c_node);
+                 for pred_ind = 1:length(preds)
+                     pred = preds{pred_ind}; %this is v in the paper
+                     pred.g=Inf;
+                     updateVertex(pred);
+%                     c_old = cost(c_node, pred, old_MAP);
+%                     c_new = cost(c_node, pred);
+%                     if c_old ~= c_new %cycling through all possibly changed edges since edges aren't explicitly stored
+%                         
+                 end
+%                 end
             end
-            computeShortestPath();
+            %s_start.rhs = Inf; %try this to see if it forces relaxation
+            computeShortestPath(); %get the new shortest path
         end
 
     else

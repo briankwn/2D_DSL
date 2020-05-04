@@ -49,7 +49,7 @@ classdef DSL_Node < handle
         function boolout = eq(a,b)
             %overriding equals
             %   compares keys
-            boolout = a.Key1 == b.Key1 && a.Key2 == b.Key2;
+            boolout = a.x == b.x && a.y == b.y; %a.Key1 == b.Key1 && a.Key2 == b.Key2;
         end
         
         function boolout = pos_equal(a,b)

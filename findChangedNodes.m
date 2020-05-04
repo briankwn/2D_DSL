@@ -10,10 +10,14 @@ changedNodes = {};
 for i=1:MAX_X %really hate looping but using a boolean index on a cell array isn't working
     for j=1:MAX_Y
         if MAP(i,j) ~= old_MAP(i,j) %found change
-            changedNodes{end + 1} = node_Grid{i,j};
-            preds = getPreds(changedNodes{end});
+%             if ~containsNode(changedNodes,node_Grid{i,j})
+                changedNodes{end + 1} = node_Grid{i,j};
+%             end
+            preds = getPreds(node_Grid{i,j});
             for pred_i=1:length(preds)
-                changedNodes{end+1} = preds{pred_i};
+%                 if ~containsNode(changedNodes,preds{pred_i})
+                    changedNodes{end+1} = preds{pred_i};
+%                 end
             end
         end
     end
@@ -22,5 +26,15 @@ end
 if ~isempty(changedNodes)
     foundChanges = 1;
 end
+
+    function contains = containsNode(CN, node) %this is a silly way to have to dedup. 
+        contains = 0;
+        for cn_ind=1:length(CN)
+            if CN{cn_ind} == node
+                contains = 1;
+                return
+            end
+        end
+    end
 
 end

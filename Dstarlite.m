@@ -8,7 +8,7 @@ close all
 
 %control variables
 makemap = 0;
-sensor_dist = 5;
+sensor_dist = 2;
 
 
 %DEFINE THE 2-D MAP ARRAY
@@ -233,7 +233,7 @@ while(~s_start.pos_equal(s_goal)) %reminder to test this with full equals - shou
             plot(current_pos.x+.4,current_pos.y+.4,'bo');
             text(current_pos.x+.5,current_pos.y-.5,'Robot');
             
-            pause(.25); %pause for animation, probably should nest this in a state/conditional/flag for speed tests
+            pause(.1); %pause for animation, probably should nest this in a state/conditional/flag for speed tests
             
         
     
@@ -243,32 +243,25 @@ while(~s_start.pos_equal(s_goal)) %reminder to test this with full equals - shou
 
             km = km + computeH(s_last, s_start); %-h_last_start in our case is almost always 1, but technically the heuristic between this node and the last
             s_last = s_start;
-            for edge_ind=1:length(changed_nodes) %any changed node, plus all neighbors - technically overboard, but simple implementation
+            
+            for edge_ind=1:length(changed_nodes) %any changed node, plus all neighbors
                 c_node = changed_nodes{edge_ind}; %this is u in the paper
-                preds = getPreds(c_node);
-                for pred_ind = 1:length(preds)
-                    pred = preds{pred_ind}; %this is v in the paper
-                    c_old = cost(c_node, pred, old_MAP);
-                    c_new = cost(c_node, pred);
-                    if c_old ~= c_new %cycling through all possibly changed edges since edges aren't explicitly stored
-                        if c_old > c_new && ~c_node.pos_equal(s_goal)
-                            %update rhs from v
-                            c_node.rhs = min(c_node.rhs, cost(c_node,pred) + pred.g);
-                        elseif c_node.rhs == (c_old + pred.g) && ~c_node.pos_equal(s_goal)
-                            %update rhs from min pred of u
-                            [succ_exists, minSucc] = getMinSucc(c_node);
-                             if succ_exists %there's a possibility all successors are unexpanded or obstacles here
-                                c_node.rhs = cost(c_node,minSucc) + minSucc.g;
-                             else
-                                 c_node.rhs = Inf;
-                             end
-                        end
-                        %this could easily get called too many times here, might need a check to see if we've already updated this c_node
-                        updateVertex(c_node) 
-                    end
-                end
+                
+                %updateVertex(c_node)
+                 
+                 preds = getPreds(c_node);
+                 for pred_ind = 1:length(preds)
+                     pred = preds{pred_ind}; %this is v in the paper
+                     updateVertex(pred);
+%                     c_old = cost(c_node, pred, old_MAP);
+%                     c_new = cost(c_node, pred);
+%                     if c_old ~= c_new %cycling through all possibly changed edges since edges aren't explicitly stored
+%                         
+                 end
+%                 end
             end
-            computeShortestPath();
+            %s_start.rhs = Inf; %try this to see if it forces relaxation
+            computeShortestPath(); %get the new shortest path
         end
 
     else
