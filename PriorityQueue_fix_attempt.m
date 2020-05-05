@@ -24,8 +24,7 @@
 
 
 
-%todo: replace column wise compare with object compare, replace comparison
-%logic with DSL_compare(key_a,key_b)
+%todo: replace column wise compare with object compare
 %check - all obj.column is removed
 
 %might just be able to override gt, lt, and eq on the node class...
@@ -83,17 +82,82 @@ classdef PriorityQueue < handle
                 disp('remove from an empty queue, returing 0');
                 return
             end
-            
+            %remove element
             if size(varargin,2) > 0
+                disp('warning: remove by element does not bubble')
                 for i=1:obj.Size
                     if isequal(obj.Data{i}, varargin{1})
                         node = obj.Data{i};
-                        obj.Data{i} = [];
+                        
+                        obj.Data{i} = obj.Data{obj.Size};% replace node with last element
+                        obj.Data{obj.Size} = [];%clear the last element
                         obj.Size = obj.Size - 1;
+                        
+                        currentIter = i;
+                        parentIter = floor(currentIter/2); 
+                        leftChild = currentIter *2;
+                        rightChild = currentIter*2+1;
+                        if leftChild <= obj.Size && rightChild <= obj.Size && (obj.Data{leftChild} < obj.Data{currentIter} || obj.Data{rightChild} < obj.Data{currentIter})
+                            %bubble down
+                            while currentIter < obj.Size
+                                %if in bounds && current > left || current > right
+                                if leftChild <= obj.Size && rightChild <= obj.Size && (obj.Data{currentIter} > obj.Data{leftChild} || obj.Data{currentIter} > obj.Data{rightChild})
+                                    if obj.Data{leftChild} < obj.Data{rightChild} %if left child less than right child
+                                        % left child is smaller
+                                        tmp = obj.Data{currentIter};
+                                        obj.Data{currentIter} = obj.Data{leftChild};
+                                        obj.Data{leftChild} = tmp;
+                                        currentIter = leftChild;
+                                        leftChild = currentIter*2;
+                                        rightChild = currentIter*2+1;
+                                    else
+                                        % right child is smaller
+                                        tmp = obj.Data{currentIter};
+                                        obj.Data{currentIter} = obj.Data{rightChild};
+                                        obj.Data{rightChild} = tmp;
+                                        currentIter = rightChild;
+                                        leftChild = currentIter*2;
+                                        rightChild = currentIter*2+1;
+                                    end
+                                    %stuff && current > left
+                                elseif leftChild <= obj.Size && rightChild > obj.Size && obj.Data{currentIter} > obj.Data{leftChild}
+                                    % only the left child exists
+                                    tmp = obj.Data{currentIter};
+                                    obj.Data{currentIter} = obj.Data{leftChild};
+                                    obj.Data{leftChild} = tmp;
+                                    break;
+                                else
+                                    % either the children are empty or the currentIter value is minimum
+                                    break;
+                                end
+                            end
+                        elseif parentIter > 0
+                            if obj.Data{currentIter} > obj.Data{parentIter}
+                                %bubble up
+                                while parentIter > 0
+                                    if obj.Data{currentIter} < obj.Data{parentIter} %%%% comparison
+                                        % the current element is smaller than parent so swap
+                                        temp = obj.Data{currentIter};
+                                        obj.Data{currentIter} = obj.Data{parentIter};
+                                        obj.Data{parentIter} = temp;
+                                        currentIter = parentIter;
+                                        parentIter = floor(currentIter/2);
+                                    else
+                                         break;
+                                    end
+                                end
+                            end
+                        end
                     end
                 end
                 obj.Data = obj.Data(~cellfun('isempty',obj.Data)); % remove empty element from cell array
-                
+                %%%need to bubble! - specicially need logic on bubbling up
+                %%%vs down... should be fun
+                %swap with end, remove end, check swapped against parent,
+                %if less than parent bubble up, else check against
+                %children, if greater than children bubble down
+            
+            %pop
             else
                 node = obj.Data{1};
                 obj.Data{1} = obj.Data{obj.Size}; % replace root with last element
@@ -104,7 +168,7 @@ classdef PriorityQueue < handle
                 currentIter = 1;
                 % perform bubble down
                 while currentIter < obj.Size
-                    %if stuff && current > left || current > right
+                    %if in bounds && current > left || current > right
                     if leftChild <= obj.Size && rightChild <= obj.Size && (obj.Data{currentIter} > obj.Data{leftChild} || obj.Data{currentIter} > obj.Data{rightChild})
                         if obj.Data{leftChild} < obj.Data{rightChild} %if left child less than right child
                             % left child is smaller

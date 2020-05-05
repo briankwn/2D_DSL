@@ -4,9 +4,9 @@ function h_val = computeH(node_a, node_b)
 %calculation later
 
 %distance
-%h_val = sqrt((node_a.x - node_b.x)^2 + (node_a.y - node_b.y)^2);
+h_val = sqrt((node_a.x - node_b.x)^2 + (node_a.y - node_b.y)^2);
 
 %from Koenig Likhachev
-h_val = max(abs(node_a.x - node_b.x),abs(node_a.y - node_b.y));
+%h_val = max(abs(node_a.x - node_b.x),abs(node_a.y - node_b.y));
 
 end

@@ -6,12 +6,9 @@
 clear all
 close all
 
-global display_expansion
-
-%control variables 
-makemap = 0; %turn on to interactively create the map, turn off to use whatever file is in the same directory named 'map.mat'
-display_expansion = 0; %turns on plotting for how many nodes are expanded. useful for tuning heuristic. also adds a delay in compute_shortest path!
-sensor_dist = 7; % adjusts how far away the bot can detect obstacles from
+%control variables
+makemap = 0;
+sensor_dist = 15;
 
 
 %DEFINE THE 2-D MAP ARRAY
@@ -208,7 +205,6 @@ push_num = push_num + 1;
 
 s_last = s_start;
 computeShortestPath();
-opt_path = [];
 
 changecount = 0;
 
@@ -220,10 +216,8 @@ while(~s_start.pos_equal(s_goal)) %reminder to test this with full equals - shou
         %% section for adding/removing dynamic obstacles and plotting the bot
             %re-display bot
             children = get(gca, 'children');
-            if(~display_expansion)
-                delete(children(1)); %deleting only the text provides a 'trail' of robots to see the path. - only works when expansion display is off
-            end
-                
+            delete(children(1)); %deleting only the text provides a 'trail' of robots to see the path. can look at a better solution for this in the future.
+
             old_MAP = MAP; %store off previous map for comparison
             
             %scan around the robot in order to 'discover' obstacles - could
@@ -247,32 +241,35 @@ while(~s_start.pos_equal(s_goal)) %reminder to test this with full equals - shou
             
             pause(.1); %pause for animation, probably should nest this in a state/conditional/flag for speed tests
             
-        
     
         %% dealing with dynamic obstacles
         [changed, changed_nodes] = findChangedNodes();
         if changed
-
-            km = km + computeH(s_last, s_start); %-h_last_start in our case is almost always 1, but technically the heuristic between this node and the last
-            s_last = s_start;
+            %going to go ahead and just dump the queue and start over like
+            %we would for A* - this is technically still even better than
+            %A* since it's still computed from goal to start
+            U.clear()
             
-            for edge_ind=1:length(changed_nodes) %any changed node, plus all neighbors
-                c_node = changed_nodes{edge_ind}; %this is u in the paper
-                
-                %updateVertex(c_node)
-                 
-                 preds = getPreds(c_node);
-                 for pred_ind = 1:length(preds)
-                     pred = preds{pred_ind}; %this is v in the paper
-                     updateVertex(pred);
-%                     c_old = cost(c_node, pred, old_MAP);
-%                     c_new = cost(c_node, pred);
-%                     if c_old ~= c_new %cycling through all possibly changed edges since edges aren't explicitly stored
-%                         
-                 end
-%                 end
+            start_x = current_pos.x;
+            start_y = current_pos.y;
+            target_x = s_goal.x;
+            target_y = s_goal.y;
+            
+            %yes this is expensive as well
+            for i=1:MAX_X
+                for j=1:MAX_Y
+                    node_Grid{i,j} = DSL_Node(i,j,Inf,Inf);
+                end
             end
-            %s_start.rhs = Inf; %try this to see if it forces relaxation
+            
+            s_start =node_Grid{start_x,start_y};
+            s_goal = node_Grid{target_x,target_y};
+            s_goal.rhs=0;
+            DSL_computeKeys(s_goal);
+            U.insert(s_goal);
+            
+            push_num = push_num + 1;
+
             computeShortestPath(); %get the new shortest path
         end
 

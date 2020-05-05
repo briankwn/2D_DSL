@@ -1,12 +1,17 @@
 function updateVertex(u)
 
-global U s_goal
+global U s_goal push_num remove_num display_expansion
 
 if ~u.pos_equal(s_goal)
     [exists, minSucc] = getMinSucc(u);
+    if display_expansion
+        plot(u.x+.5,u.y+.5,'c+'); %visualization to show vertices actually expanded
+    end
     if exists
         u.rhs = cost(u,minSucc) + minSucc.g;
-        %plot(u.x+.5,u.y+.5,'g+'); %visualization to show vertices actually expanded
+        if display_expansion
+            plot(u.x+.5,u.y+.5,'g+'); %visualization to show vertices actually expanded
+        end
     else
         u.rhs = Inf;
         %plot(u.x+.2,u.y+.2,'r+'); %visualization to show vertices actually expanded
@@ -19,6 +24,8 @@ end
 put_these_back = {};
 if U.contains(u)
     
+    remove_num = remove_num + 1;
+    
     %hack for remove
     remove_temp = U.remove(); %have to resort to using pop/push remove since the built in remove function doesn't bubble
     while (remove_temp ~= u)
@@ -30,7 +37,7 @@ if U.contains(u)
     end
     %end hack
     
-%     U.remove(u);
+%      U.remove(u);
     %test
     if U.contains(u)
         disp('remove seems to have failed')
@@ -40,6 +47,7 @@ end
 if u.g ~= u.rhs %add it back to the queue if it's locally inconsistent - this means we need to consider it for a shorter path
     DSL_computeKeys(u);
     U.insert(u);
+    push_num = push_num + 1;
 end
 
 
