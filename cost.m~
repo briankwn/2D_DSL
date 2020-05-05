@@ -1,7 +1,0 @@
-function edge_cost = cost(u,v)
-%cost of moving from one node to a neighbor
-
-if(MAP(u.x,u.y) == -1 || MAP(v.x,v.y) == -1) %either 
-
-
-end

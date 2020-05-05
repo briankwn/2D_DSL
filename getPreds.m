@@ -1,6 +1,6 @@
 function preds = getPreds(node)
 
-%technically all neighbors are preds
+%technically all neighbors are preds - return them all
 global MAX_X
 global MAX_Y
 global node_Grid

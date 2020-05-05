@@ -52,7 +52,7 @@ classdef DSL_Node < handle
             boolout = a.x == b.x && a.y == b.y; %a.Key1 == b.Key1 && a.Key2 == b.Key2;
         end
         
-        function boolout = pos_equal(a,b)
+        function boolout = pos_equal(a,b) %this is redundant but originally used to distinguish node vs key comparison
             boolout = a.x == b.x && a.y == b.y;
         end
         

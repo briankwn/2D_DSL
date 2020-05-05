@@ -7,7 +7,7 @@ global MAX_X MAX_Y MAP old_MAP node_Grid
 foundChanges = 0; %default to not having found any changes
 changedNodes = {};
 
-for i=1:MAX_X %really hate looping but using a boolean index on a cell array isn't working
+for i=1:MAX_X %really hate looping but using a boolean index on a cell array isn't working - look at cellfun for this in the future
     for j=1:MAX_Y
         if MAP(i,j) ~= old_MAP(i,j) %found change
 %             if ~containsNode(changedNodes,node_Grid{i,j})

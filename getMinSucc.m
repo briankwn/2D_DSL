@@ -1,5 +1,6 @@
 function [exists, succ] = getMinSucc(node)
-
+%gets the minimum cost successor - used for rhs computation and moving the
+%robot
 succ = nan;
 exists = 0;
 

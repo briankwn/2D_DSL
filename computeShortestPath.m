@@ -22,7 +22,7 @@ while(U.peek() < s_start || s_start.rhs ~= s_start.g)
 
     elseif u.g > u.rhs %---- locally over consistent, relax down 
         if display_expansion
-            plot(u.x+.5,u.y+.5,'ch'); %uncomment to show which nodes are being fully expanded/relaxed
+            plot(u.x+.5,u.y+.5,'ch'); %shows which nodes are being fully expanded/relaxed
             pause(.1)
         end
         
